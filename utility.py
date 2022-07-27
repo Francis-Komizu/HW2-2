@@ -40,7 +40,7 @@ speakers = CommonInfo('data/speakers').speakers
 
 class Normalizer(object):
     '''Normalizer: convience method for fetch normalize instance'''
-    def __init__(self, statfolderpath: str='./etc'):
+    def __init__(self, statfolderpath: str='/content/HW2-2/data/processed'): # In Colab
         
         self.folderpath = statfolderpath
 
