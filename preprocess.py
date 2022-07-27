@@ -73,7 +73,8 @@ def wav_to_mcep_file(dataset: str, sr=SAMPLE_RATE, processed_filepath: str = './
 
     allwavs_cnt = len(glob.glob(f'{dataset}/*/*.wav'))
     print(f'Total {allwavs_cnt} audio files!')
-
+    
+    print('Converting wav to MCC...')
     d = load_wavs(dataset, sr)
     for one_speaker in tqdm(d.keys()):
         values_of_one_speaker = list(d[one_speaker].values())
