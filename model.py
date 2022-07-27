@@ -5,7 +5,7 @@ import numpy as np
 from data_loader import data_loader
 from utility import speakers
 
-attr_dim = 1 # the dimension of attribute vector
+cls_dim = 1
 
 class Down2d(nn.Module):
     """docstring for Down2d."""
@@ -48,7 +48,7 @@ class Up2d(nn.Module):
         x3 =  x1 * torch.sigmoid(x2)
         
         return x3
-
+        
 
 class Generator(nn.Module):
     """docstring for Generator."""
@@ -62,16 +62,17 @@ class Generator(nn.Module):
             Down2d(64, 5, (9,5), (9,1), (1,2))
         )
 
-        in_channel = 5 + attr_dim
+        ## Modified
+        in_channel = 5 + cls_dim
         self.up1 = Up2d(in_channel, 64, (9,5), (9,1), (0,2))
-        in_channel = 64 + attr_dim
+        in_channel = 64 + cls_dim
         self.up2 = Up2d(in_channel, 128, (3,5), (1,1), (1,2))
-        in_channel = 128 + attr_dim
+        in_channel = 128 + cls_dim
         self.up3 = Up2d(in_channel, 64, (4,8), (2,2), (1,3))
-        in_channel = 64 + attr_dim
+        in_channel = 64 + cls_dim
         self.up4 = Up2d(in_channel, 32, (4,8), (2,2), (1,3))
 
-        in_channel = 32 + attr_dim
+        in_channel = 32 + cls_dim
         self.deconv = nn.ConvTranspose2d(in_channel, 1, (3,9), (1,1), (1,4))
 
     def forward(self, x, c):
@@ -104,12 +105,14 @@ class Discriminator(nn.Module):
     """docstring for Discriminator."""
     def __init__(self):
         super(Discriminator, self).__init__()
-        in_channel = 5 + attr_dim
+        
+        ## Modified
+        in_channel = 1 + cls_dim
         self.d1 = Down2d(in_channel, 32, (3,9), (1,1), (1,4))
-        in_channel = 32 + attr_dim
-        self.d2 = Down2d(in_channel, 32, (3,8), (1,2), (1,3))
-        self.d3 = Down2d(in_channel, 32, (3,8), (1,2), (1,3))
-        self.d4 = Down2d(in_channel, 32, (3,6), (1,2), (1,2))
+        in_channel = 32 + cls_dim
+        self.d2 = Down2d(in_channel, 32, (3,8), (1,2), (1,3))    
+        self.d3 = Down2d(in_channel, 32, (3,8), (1,2), (1,3))    
+        self.d4 = Down2d(in_channel, 32, (3,6), (1,2), (1,2)) 
         
         self.conv = nn.Conv2d(in_channel, 1, (36,5), (36,1), (0,2))
         self.pool = nn.AvgPool2d((1,64))
@@ -145,12 +148,13 @@ class DomainClassifier(nn.Module):
     """docstring for DomainClassifier."""
     def __init__(self):
         super(DomainClassifier, self).__init__()
+        ## Modified
         self.main = nn.Sequential(
             Down2d(1, 8, (4,4), (2,2), (5,1)),
             Down2d(8, 16, (4,4), (2,2), (1,1)),
             Down2d(16, 32, (4,4), (2,2), (0,1)),
             Down2d(32, 16, (3,4), (1,2), (1,1)),
-            nn.Conv2d(16, attr_dim, (1,4), (1,2), (0,1)),
+            nn.Conv2d(16, cls_dim, (1,4), (1,2), (0,1)),
             nn.AvgPool2d((1,16)),
             nn.LogSoftmax()
         )
@@ -159,7 +163,10 @@ class DomainClassifier(nn.Module):
        x = x[:, :, 0:8, :]
        x = self.main(x)
        x = x.view(x.size(0), x.size(1))
+       x = x.squeeze(-1)
        return x
+
+
 
 if __name__ == '__main__':
     # device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -188,5 +195,7 @@ if __name__ == '__main__':
     # print(o3.shape)
     # m = nn.Softmax()
     # input = torch.Tensor([[1,2],[5,5]])
+    # output = m(input)
+    # print(output)
     # output = m(input)
     # print(output)
