@@ -136,9 +136,11 @@ class Solver(object):
              # Fetch real images and labels.
             try:
                 x_real, speaker_idx_org, label_org = next(data_iter)
+                speaker_idx_org = speaker_idx_org.to(torch.float)
             except:
                 data_iter = iter(self.data_loader)
-                x_real, speaker_idx_org, label_org = next(data_iter)           
+                x_real, speaker_idx_org, label_org = next(data_iter)
+                speaker_idx_org = speaker_idx_org.to(torch.float)           
 
             # Generate target domain labels randomly.
             rand_idx = torch.randperm(label_org.size(0))
@@ -158,7 +160,8 @@ class Solver(object):
             # CELoss = nn.CrossEntropyLoss()
             CELoss = nn.BCELoss()
             sig = nn.Sigmoid()
-            cls_real = self.C(x_real).squeeze(1)
+            # cls_real = self.C(x_real).squeeze(1)
+            cls_real = self.C(x_real)
             cls_loss_real = CELoss(input=sig(cls_real), target=speaker_idx_org)
 
             self.reset_grad()
@@ -175,7 +178,8 @@ class Solver(object):
             d_loss_t = F.binary_cross_entropy_with_logits(input=out_f,target=torch.zeros_like(out_f, dtype=torch.float)) + \
                 F.binary_cross_entropy_with_logits(input=out_r, target=torch.ones_like(out_r, dtype=torch.float))
            
-            out_cls = self.C(x_fake).squeeze(1)
+            # out_cls = self.C(x_fake).squeeze(1)
+            out_cls = self.C(x_fake)
             d_loss_cls = CELoss(input=sig(out_cls), target=speaker_idx_trg)
 
             # Compute loss for gradient penalty.
