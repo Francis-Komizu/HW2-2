@@ -7,6 +7,7 @@ import glob
 from utility import *
 import argparse
 from datetime import datetime
+from tqdm import tqdm
 
 FEATURE_DIM = 36
 SAMPLE_RATE = 16000
@@ -74,7 +75,7 @@ def wav_to_mcep_file(dataset: str, sr=SAMPLE_RATE, processed_filepath: str = './
     print(f'Total {allwavs_cnt} audio files!')
 
     d = load_wavs(dataset, sr)
-    for one_speaker in d.keys():
+    for one_speaker in tqdm(d.keys()):
         values_of_one_speaker = list(d[one_speaker].values())
 
         for index, one_chunk in enumerate (chunks(values_of_one_speaker, CHUNK_SIZE)):
